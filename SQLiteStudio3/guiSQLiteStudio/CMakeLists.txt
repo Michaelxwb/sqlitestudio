@@ -420,6 +420,7 @@ qt_wrap_ui(PROJECT_SOURCES
 )
 
 add_library(guiSQLiteStudio SHARED ${PROJECT_HEADERS} ${PROJECT_SOURCES}
+    common/spinnowheelfilter.h common/spinnowheelfilter.cpp
     completer/completersnippetdelegate.h completer/completersnippetdelegate.cpp)
 sqlitestudio_set_output_properties(guiSQLiteStudio)
 set_target_properties(guiSQLiteStudio PROPERTIES

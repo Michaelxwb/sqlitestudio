@@ -167,22 +167,34 @@ new_qtcore_path="@rpath/QtCore.framework/Versions/A/QtCore"
 cp -P sqlitestudiocli SQLiteStudio.app/Contents/MacOS
 install_name_tool -change libcoreSQLiteStudio.1.dylib "@rpath/libcoreSQLiteStudio.1.dylib" SQLiteStudio.app/Contents/MacOS/sqlitestudiocli
 install_name_tool -change "$qtcore_path" "$new_qtcore_path" SQLiteStudio.app/Contents/MacOS/sqlitestudiocli
+install_name_tool -change libsqlite3.0.dylib "@rpath/libsqlite3.0.dylib" SQLiteStudio.app/Contents/MacOS/sqlitestudiocli
 
 # SQLiteStudio binary paths
 install_name_tool -change libcoreSQLiteStudio.1.dylib "@rpath/libcoreSQLiteStudio.1.dylib" SQLiteStudio.app/Contents/MacOS/SQLiteStudio
 install_name_tool -change libguiSQLiteStudio.1.dylib "@rpath/libguiSQLiteStudio.1.dylib" SQLiteStudio.app/Contents/MacOS/SQLiteStudio
+install_name_tool -change libsqlite3.0.dylib "@rpath/libsqlite3.0.dylib" SQLiteStudio.app/Contents/MacOS/SQLiteStudio
 
 # Lib paths
 install_name_tool -change libcoreSQLiteStudio.1.dylib "@rpath/libcoreSQLiteStudio.1.dylib" SQLiteStudio.app/Contents/Frameworks/libguiSQLiteStudio.1.dylib
 install_name_tool -change libsqlite3.0.dylib "@rpath/libsqlite3.0.dylib" SQLiteStudio.app/Contents/Frameworks/libcoreSQLiteStudio.1.dylib
 
 embed_libsqlite3() {
+    if [ ! -f "$libdir/libsqlite3.0.dylib" ]; then
+        abort "libsqlite3.0.dylib not found in $libdir (DEP_LIB_DIR=${DEP_LIB_DIR:-unset})"
+    fi
     cp -RPf "$libdir/libsqlite3.0.dylib" "$1/Contents/Frameworks"
     ln -sf libsqlite3.0.dylib "$1/Contents/Frameworks/libsqlite3.dylib"
+    # Verify the copy succeeded
+    if [ ! -f "$1/Contents/Frameworks/libsqlite3.0.dylib" ]; then
+        abort "Failed to embed libsqlite3.0.dylib into $1"
+    fi
 }
 
 embed_libtcl() {
-    cp -RPf $libdir/libtcl*.dylib "$1/Contents/Frameworks"
+    for _lib in $libdir/libtcl*.dylib; do
+        [ -f "$_lib" ] || { echo "Warning: $_lib not found, skipping"; continue; }
+        cp -RPf "$_lib" "$1/Contents/Frameworks"
+    done
 }
 
 debug "in frameworks - 1:" "$(ls -l SQLiteStudio.app/Contents/Frameworks)"
